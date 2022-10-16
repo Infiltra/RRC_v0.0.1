@@ -1,0 +1,128 @@
+version: '3'
+services:
+
+  # Blue 1
+  blue1:
+    build:
+      context: .
+      dockerfile: img/competitor/Dockerfile.COMPETITOR
+      args:
+        target_uid: 1000
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./img/competitor/blue/blue1-base.grc:/scripts/blue1-base.grc:rw
+      - ./img/competitor/blue/blue1-status.sh:/scripts/blue1-status.sh:rw
+    environment:
+      DISPLAY: ${DISPLAY}
+    # ports:
+
+    # networks:
+    #   - blue1_marshal
+    #   - blue1_muxer
+
+  # Blue 2
+  blue2:
+    build:
+      context: .
+      dockerfile: img/competitor/Dockerfile.COMPETITOR
+      args:
+        target_uid: 1000
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./img/competitor/blue/blue2-base.grc:/scripts/blue2-base.grc:rw
+      - ./img/competitor/blue/blue2-status.sh:/scripts/blue2-status.sh:rw
+    environment:
+      DISPLAY: ${DISPLAY}
+    ports:
+      - "44002:44002" # ZMQ packet sink for received packets
+    # networks:
+    #   - blue2_marshal
+    #   - blue2_muxer
+
+
+  # Red 1
+  red1:
+    build:
+      context: .
+      dockerfile: img/infra/Dockerfile.INFRA
+      args:
+        target_uid: 1000
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./img/infra/red/red1-base.grc:/scripts/red1-base.grc:rw
+      - ./img/infra/red/red1-dutycycle.grc:/scripts/red1-dutycycle.grc:rw
+      - ./img/infra/red/dutycycle.32iq:/scripts/dutycycle.32iq:rw
+      - ./img/infra/red/red1-swept-amplitude-offset-replay.grc:/scripts/red1-swept-amplitude-offset-replay.grc:rw
+      - ./img/infra/red/tea_and_tech_time_red_radios:/scripts/tea_and_tech_time_red_radios:rw
+      - ./img/infra/red/red1-status.sh:/scripts/red1-status.sh:rw
+      # - /tmp/iq:/tmp/iq:rw
+
+    environment:
+      DISPLAY: ${DISPLAY}
+    # ports:
+    # networks:
+    #   - red1_muxer
+
+  # Traffic Marshal
+  marshal:
+    build:
+      context: .
+      dockerfile: img/infra/Dockerfile.INFRA
+      args:
+        target_uid: 1000
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./img/infra/marshal/marshal-base.grc:/scripts/marshal-base.grc:rw
+      - ./img/infra/marshal/marshal-status.sh:/scripts/marshal-status.sh:rw
+      # - ../scripts/zmq-test.py:/scripts/zmq-test.py:rw
+      - ../../src/scoring:/scripts/scoring:rw
+    environment:
+      DISPLAY: ${DISPLAY}
+    ports:
+      - "44001:44001" # ZMQ packet source for blue team
+    # networks:
+    #   - blue1_marshal
+    #   - blue2_marshal
+
+  # Muxer
+  muxer:
+    build:
+      context: .
+      dockerfile: img/infra/Dockerfile.INFRA
+      args:
+        target_uid: 1000
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./img/infra/muxer/muxer-base.grc:/scripts/muxer-base.grc:rw
+      - ./img/infra/muxer/muxer-status.sh:/scripts/muxer-status.sh:rw
+      - /tmp/blue1.psd-log:/tmp/blue1.psd-log:rw
+      - /tmp/blue2.psd-log:/tmp/blue2.psd-log:rw
+      - /tmp/red1.psd-log:/tmp/red1.psd-log:rw
+    environment:
+      DISPLAY: ${DISPLAY}
+    ports:
+      - "33003:33003" # ZMQ sink for IQ going to the red/blue nodes and host
+      - "44006:44006" # ZMQ source for IQ from the muxer
+      - "33005:33005" # ZMQ sink for IQ to the muxer      
+      - "33004:33004" # ZMQ sink for IQ to the muxer
+      - "33001:33001" # ZMQ sink for IQ to the muxer
+      - "33002:33002" # ZMQ sink for IQ to the muxer
+      - "33008:33008" # ZMQ source for IQ to the marshal
+      - "33007:33007" # ZMQ source for IQ to the marshal
+    # networks:
+    #   - blue1_muxer
+    #   - blue2_muxer
+    #   - red1_muxer
+
+
+# networks:
+#   blue1_marshal:
+#     driver: bridge
+#   blue2_marshal:
+#     driver: bridge
+#   blue1_muxer:
+#     driver: bridge
+#   blue2_muxer:
+#     driver: bridge
+#   red1_muxer:
+#     driver: bridge

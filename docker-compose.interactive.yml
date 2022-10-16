@@ -1,0 +1,17 @@
+version: '3'
+services:
+
+  blue1:
+    entrypoint: ["gnuradio-companion", "/scripts/blue1-base.grc"]
+    
+  blue2:
+    entrypoint: ["gnuradio-companion", "/scripts/blue2-base.grc"]
+    
+  red1:
+    entrypoint: ["gnuradio-companion", "/scripts/red1-base.grc"]
+
+  marshal:
+    entrypoint: ["gnuradio-companion", "/scripts/marshal-base.grc"]
+
+  muxer:
+    entrypoint: ["gnuradio-companion", "/scripts/muxer-base.grc"]

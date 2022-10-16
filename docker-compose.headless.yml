@@ -1,0 +1,17 @@
+version: '3'
+services:
+
+  blue1:
+    command: "bash -c 'grcc /scripts/blue1-base.grc && python3 /tmp/blue1base.py'"
+    
+  blue2:
+    command: "bash -c 'grcc /scripts/blue2-base.grc && python3 /tmp/blue2base.py'"
+    
+  red1:
+    command: "bash -c 'grcc /scripts/red1-dutycycle.grc && python3 /tmp/red1dutycycle.py'"
+
+  muxer:
+    command: "bash -c 'grcc /scripts/muxer-base.grc && python3 /tmp/muxerbase.py'"
+
+  marshal:
+    command: "bash -c 'rm -f /tmp/start.txt; until [ -f /tmp/start.txt ]; do sleep 1; done; python3 /scripts/scoring/main.py -S 0.0.0.0 -s blue2'"
